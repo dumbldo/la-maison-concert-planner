@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concert Planner — La Maison</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+:root{--bg:#FAF9F6;--surf:#FFF;--bord:#E8E4DC;--bord2:#C8C0B0;--tx:#1A1714;--tx2:#6B6560;--tx3:#A09890;--acc:#2C2420;--gbg:#EEF4E8;--gt:#2D5016;--bbg:#E8F0F8;--bt:#1A3A6B;--abg:#FBF2E0;--at:#7A4A08;--cbg:#FAF0EC;--ct:#7A2D18;--pbg:#F0EEFB;--pt:#3A2870;--xbg:#F2F0EC;--xt:#3A3630;--rbg:#FDE8E8;--rt:#7A1A1A}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;font-size:14px}
+/* HEADER */
+.hdr{background:var(--surf);border-bottom:.5px solid var(--bord);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100}
+.logo{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500}
+.logo em{color:var(--tx2);font-style:italic}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.dpill{font-size:11px;color:var(--tx2);background:var(--xbg);padding:4px 10px;border-radius:20px}
+.btn{font-size:12px;padding:6px 14px;border-radius:20px;border:.5px solid var(--bord2);background:transparent;cursor:pointer;color:var(--tx2);display:flex;align-items:center;gap:5px;font-family:inherit;transition:all .15s}
+.btn:hover{background:var(--acc);color:#fff;border-color:var(--acc)}
+.btn.spin i{animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.sav{font-size:11px;color:var(--tx3);display:flex;align-items:center;gap:4px;transition:opacity .2s}
+.sav.spin i{animation:rot .7s linear infinite}
+/* STATS */
+.stats{background:var(--surf);border-bottom:.5px solid var(--bord);padding:8px 1.5rem;display:flex;gap:2rem;align-items:center}
+.stat .sn{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500}
+.stat .sl{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em}
+.pw{flex:1;max-width:150px}
+.pl{font-size:10px;color:var(--tx3);margin-bottom:3px}
+.pb{background:var(--bord);border-radius:2px;height:2px}
+.pf{background:var(--acc);border-radius:2px;height:2px;transition:width .4s}
+/* LAYOUT */
+.layout{display:flex;height:calc(100vh - 100px)}
+.sidebar{width:215px;flex-shrink:0;background:var(--surf);border-right:.5px solid var(--bord);padding:1rem 0;overflow-y:auto;display:flex;flex-direction:column}
+.ng{padding:0 .6rem;margin-bottom:1rem}
+.nl{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3);padding:0 .5rem;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between}
+.nl-add{background:none;border:none;cursor:pointer;color:var(--tx3);font-size:13px;padding:0;line-height:1;transition:color .12s}
+.nl-add:hover{color:var(--acc)}
+.ni{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12px;color:var(--tx2);transition:all .12s;position:relative;group:true}
+.ni:hover{background:var(--bg);color:var(--tx)}
+.ni.on{background:var(--acc);color:#fff}
+.ni i.icon{font-size:14px;flex-shrink:0}
+.ni .nc{flex:1;min-width:0}
+.cat-name{font-size:12px;background:none;border:none;color:inherit;font-family:inherit;padding:0;cursor:pointer;width:100%;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat-name:focus{outline:none;background:rgba(255,255,255,.15);border-radius:3px;padding:1px 4px}
+.nb{font-size:10px;padding:1px 6px;border-radius:10px;background:var(--bord);color:var(--tx3);flex-shrink:0}
+.ni.on .nb{background:rgba(255,255,255,.2);color:#fff}
+.ni-del{background:none;border:none;cursor:pointer;color:var(--tx3);font-size:11px;padding:0;opacity:0;transition:opacity .12s;flex-shrink:0}
+.ni:hover .ni-del{opacity:.6}
+.ni-del:hover{opacity:1!important;color:#c0392b}
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:1.5rem}
+.panel{display:none}.panel.on{display:block}
+.ph{margin-bottom:1.25rem;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+.ph-left{}
+.ptit{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;margin-bottom:2px}
+.psub{font-size:12px;color:var(--tx2)}
+
+/* RETRO PLANNING */
+.retro-grid{display:grid;gap:12px}
+.retro-col{background:var(--surf);border:.5px solid var(--bord);border-radius:10px;overflow:hidden}
+.retro-col-hdr{padding:10px 14px;font-size:12px;font-weight:500;border-bottom:.5px solid var(--bord);display:flex;align-items:center;gap:8px}
+.retro-col-hdr .tl-badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:10px}
+.retro-tasks{display:flex;flex-direction:column;gap:3px;padding:8px}
+.retro-task{font-size:12px;padding:6px 10px;background:var(--bg);border-radius:6px;border-left:3px solid transparent;color:var(--tx)}
+.retro-task .rt-cat{font-size:10px;color:var(--tx3);margin-top:1px}
+
+/* TIMELINE BADGE */
+.tl-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:500;padding:2px 7px;border-radius:10px;cursor:pointer;border:none;font-family:inherit}
+.tl-j45{background:#E8F0F8;color:#1A3A6B}
+.tl-j30{background:#F0EEFB;color:#3A2870}
+.tl-j15{background:#FBF2E0;color:#7A4A08}
+.tl-j7{background:#FAF0EC;color:#7A2D18}
+.tl-j3{background:#FDE8E8;color:#7A1A1A}
+.tl-j1{background:#EEF4E8;color:#2D5016}
+.tl-jj{background:#2C2420;color:#fff}
+.tl-none{background:var(--xbg);color:var(--tx3)}
+
+/* TASK ROWS */
+.tlist{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.task-wrap{display:flex;flex-direction:column;gap:2px}
+.tr{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surf);border:.5px solid var(--bord);border-radius:8px;transition:border-color .12s}
+.tr:hover{border-color:var(--bord2)}
+.tr input[type=checkbox]{flex-shrink:0;width:14px;height:14px;accent-color:var(--acc);cursor:pointer}
+.tt{font-size:13px;color:var(--tx);flex:1;line-height:1.4;cursor:text;border:none;background:transparent;font-family:inherit;padding:0;min-width:0}
+.tt:focus{outline:none;background:var(--bbg);border-radius:4px;padding:1px 5px}
+.tt.done{text-decoration:line-through;color:var(--tx3)}
+.tr-actions{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.tr-btn{background:none;border:none;cursor:pointer;color:var(--tx3);font-size:13px;padding:2px 3px;opacity:0;transition:opacity .12s;line-height:1;border-radius:4px}
+.tr:hover .tr-btn{opacity:1}
+.tr-btn:hover{background:var(--xbg);color:var(--tx)}
+.tr-btn.del:hover{background:var(--rbg);color:var(--rt)}
+
+/* SUBTASKS */
+.subtask-list{display:flex;flex-direction:column;gap:2px;margin-left:28px;margin-top:2px}
+.str{display:flex;align-items:center;gap:7px;padding:5px 9px;background:var(--bg);border:.5px solid var(--bord);border-radius:6px;border-left:2px solid var(--bord2)}
+.str input[type=checkbox]{flex-shrink:0;width:13px;height:13px;accent-color:var(--acc);cursor:pointer}
+.stt{font-size:12px;color:var(--tx2);flex:1;border:none;background:transparent;font-family:inherit;padding:0;cursor:text}
+.stt:focus{outline:none;background:var(--bbg);border-radius:3px;padding:1px 4px}
+.stt.done{text-decoration:line-through;color:var(--tx3)}
+.str-actions{display:flex;align-items:center;gap:3px;flex-shrink:0}
+.str-btn{background:none;border:none;cursor:pointer;color:var(--tx3);font-size:12px;padding:1px 2px;opacity:0;transition:opacity .12s;line-height:1}
+.str:hover .str-btn{opacity:1}
+.str-btn:hover{color:var(--tx)}
+.str-btn.del:hover{color:#c0392b}
+.add-sub-btn{font-size:11px;color:var(--tx3);background:none;border:.5px dashed var(--bord2);border-radius:5px;padding:3px 8px;cursor:pointer;font-family:inherit;margin-left:28px;margin-top:2px;transition:all .12s;display:flex;align-items:center;gap:4px}
+.add-sub-btn:hover{background:var(--bbg);color:var(--bt);border-color:var(--bt)}
+
+/* ADD ROW */
+.ar{display:flex;gap:5px;margin-top:4px}
+.ar input,.ar select{font-size:13px;padding:6px 10px;border:.5px solid var(--bord);border-radius:7px;background:var(--surf);color:var(--tx);font-family:inherit}
+.ar input{flex:1}
+.ar input:focus,.ar select:focus{outline:none;border-color:var(--bord2)}
+.ar button{font-size:12px;padding:6px 12px;border-radius:7px;border:.5px solid var(--bord2);background:var(--surf);color:var(--tx);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;font-family:inherit;transition:all .12s}
+.ar button:hover{background:var(--acc);color:#fff;border-color:var(--acc)}
+.tl-select{font-size:11px;padding:3px 6px;border:.5px solid var(--bord);border-radius:6px;background:var(--surf);color:var(--tx2);font-family:inherit;cursor:pointer}
+.tl-select:focus{outline:none;border-color:var(--bord2)}
+
+/* PLANNING */
+.planning-wrap{overflow-x:auto;margin-bottom:1.5rem;border:.5px solid var(--bord);border-radius:10px}
+.planning-grid{display:grid;min-width:700px}
+.pg-corner{background:var(--xbg);padding:10px 12px;border-right:.5px solid var(--bord);border-bottom:.5px solid var(--bord);font-size:10px;font-weight:500;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em}
+.pg-room-hdr{background:var(--xbg);padding:8px 10px;border-right:.5px solid var(--bord);border-bottom:.5px solid var(--bord);display:flex;align-items:center;gap:4px}
+.pg-room-hdr:last-child{border-right:none}
+.room-inp{font-size:12px;font-weight:500;color:var(--tx);border:none;background:transparent;font-family:inherit;width:100%;padding:0;cursor:pointer;min-width:0}
+.room-inp:focus{outline:none;background:var(--surf);border:.5px solid var(--bord2);border-radius:4px;padding:2px 5px}
+.room-del-btn{background:none;border:none;cursor:pointer;color:var(--tx3);font-size:12px;opacity:0;flex-shrink:0;padding:0;transition:opacity .12s}
+.pg-room-hdr:hover .room-del-btn{opacity:1}
+.pg-time-cell{background:var(--surf);padding:9px 10px;border-right:.5px solid var(--bord);border-bottom:.5px solid var(--bord);display:flex;align-items:flex-start;justify-content:space-between;gap:4px;min-width:88px}
+.pg-time-cell .tc-time{font-size:12px;font-weight:500;color:var(--tx)}
+.pg-time-cell .tc-desc{font-size:10px;color:var(--tx3);margin-top:1px}
+.pg-time-edit{background:none;border:none;cursor:pointer;color:var(--tx3);font-size:11px;padding:0;opacity:0;flex-shrink:0;transition:opacity .12s}
+.pg-time-cell:hover .pg-time-edit{opacity:1}
+.pg-slot{background:var(--surf);border-right:.5px solid var(--bord);border-bottom:.5px solid var(--bord);padding:5px 6px;min-height:68px}
+.pg-slot:last-child{border-right:none}
+.pg-block{border-radius:6px;padding:5px 7px;margin-bottom:3px;font-size:11px;position:relative;cursor:default}
+.pb-title{font-weight:500;line-height:1.3}
+.pb-note{font-size:10px;opacity:.75;margin-top:1px}
+.pb-del{position:absolute;top:3px;right:3px;background:none;border:none;cursor:pointer;font-size:11px;opacity:0;transition:opacity .12s;color:inherit;padding:0;line-height:1}
+.pg-block:hover .pb-del{opacity:1}
+.pg-add-wrap{opacity:0;transition:opacity .12s;margin-top:2px}
+.pg-slot:hover .pg-add-wrap{opacity:1}
+.pg-add-btn{width:100%;font-size:11px;color:var(--tx3);background:var(--xbg);border:.5px dashed var(--bord2);border-radius:5px;padding:3px 6px;cursor:pointer;font-family:inherit;transition:all .12s;text-align:left}
+.pg-add-btn:hover{background:var(--bbg);color:var(--bt);border-color:var(--bt)}
+.blk-groupe{background:#E8F0F8;color:#1A3A6B}.blk-duo{background:#F0EEFB;color:#3A2870}.blk-solo{background:#FBF2E0;color:#7A4A08}.blk-cocktail{background:#EEF4E8;color:#2D5016}.blk-entracte{background:#F2F0EC;color:#3A3630}.blk-autre{background:#FAF0EC;color:#7A2D18}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.li{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--tx2)}
+.ld{width:10px;height:10px;border-radius:3px}
+
+/* FLOORS */
+.fmap{display:flex;flex-direction:column;gap:5px;margin-bottom:1.25rem}
+.frow{display:flex;align-items:stretch;gap:6px}
+.flbl{width:72px;flex-shrink:0;display:flex;align-items:center;font-size:11px;font-weight:500;color:var(--tx2)}
+.frooms{display:flex;gap:6px;flex:1}
+.froom{flex:1;border:.5px solid var(--bord);border-radius:8px;padding:9px 11px}
+.room-rename{font-size:12px;font-weight:500;border:none;background:transparent;color:var(--tx);font-family:inherit;width:100%;padding:0;cursor:pointer;margin-bottom:2px;display:block}
+.room-rename:focus{outline:none;background:var(--surf);border:.5px solid var(--bord2);border-radius:4px;padding:2px 6px}
+.fp{font-size:11px;color:var(--tx3);display:flex;align-items:center;gap:3px}
+
+/* PERFS */
+.fsec{margin-bottom:1.75rem}
+.fsec-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:.5px solid var(--bord)}
+.ftag{font-size:11px;font-weight:500;padding:3px 10px;border-radius:12px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-bottom:8px}
+.pgrid.single{grid-template-columns:1fr}
+.pcard{background:var(--surf);border:.5px solid var(--bord);border-radius:10px;padding:11px 13px;transition:border-color .12s}
+.pcard:hover{border-color:var(--bord2)}
+.pcard-hdr{display:flex;align-items:center;gap:7px;margin-bottom:9px}
+.ptype{font-size:10px;font-weight:500;padding:2px 7px;border-radius:10px}
+.tg{background:var(--bbg);color:var(--bt)}.td{background:var(--pbg);color:var(--pt)}.ts{background:var(--abg);color:var(--at)}
+.pname{font-size:13px;font-weight:500;flex:1}
+.pdel{background:none;border:none;cursor:pointer;color:var(--tx3);font-size:13px;opacity:0;transition:opacity .12s;padding:0}
+.pcard:hover .pdel{opacity:1}.pdel:hover{color:#c0392b}
+.ptodos{display:flex;flex-direction:column;gap:3px;padding-top:8px;border-top:.5px solid var(--bord)}
+.ptodo{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx2)}
+.ptodo input{flex-shrink:0;accent-color:var(--acc);cursor:pointer}
+.ptodo label{cursor:pointer}
+.ptodo label.done{text-decoration:line-through;color:var(--tx3)}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.sublbl{font-size:10px;font-weight:500;color:var(--tx2);margin-bottom:7px;text-transform:uppercase;letter-spacing:.06em}
+
+/* PRESTS */
+.prestgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-bottom:10px}
+.prestcard{background:var(--surf);border:.5px solid var(--bord);border-radius:10px;padding:13px 14px}
+.prestcard-hdr{display:flex;align-items:flex-start;gap:8px;margin-bottom:7px}
+.pico{width:32px;height:32px;border-radius:7px;background:var(--xbg);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;color:var(--xt)}
+.pinfo{flex:1}
+.pname2{font-size:13px;font-weight:500;margin-bottom:2px}
+.pcat{font-size:11px;color:var(--tx3)}
+.psel{font-size:11px;padding:2px 6px;border-radius:6px;border:.5px solid var(--bord);background:var(--bg);color:var(--tx);font-family:inherit;cursor:pointer}
+.pdesc{font-size:12px;color:var(--tx2);margin-bottom:8px;line-height:1.5}
+.ptasks{display:flex;flex-direction:column;gap:3px;padding-top:7px;border-top:.5px solid var(--bord)}
+.ptask{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx2)}
+.ptask input{flex-shrink:0;accent-color:var(--acc)}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:var(--surf);border-radius:12px;padding:1.5rem;width:360px;max-width:95vw}
+.modal h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;margin-bottom:1rem}
+.modal label{font-size:12px;color:var(--tx2);display:block;margin-bottom:3px;margin-top:10px}
+.modal input,.modal select,.modal textarea{width:100%;font-size:13px;padding:7px 10px;border:.5px solid var(--bord);border-radius:7px;background:var(--bg);color:var(--tx);font-family:inherit}
+.modal input:focus,.modal select:focus,.modal textarea:focus{outline:none;border-color:var(--bord2)}
+.modal textarea{min-height:55px;resize:vertical}
+.mbtns{display:flex;gap:8px;margin-top:1.25rem;justify-content:flex-end}
+.mbtns button{font-size:13px;padding:7px 16px;border-radius:8px;border:.5px solid var(--bord2);background:var(--surf);color:var(--tx);cursor:pointer;font-family:inherit;transition:all .12s}
+.mbtns .mok{background:var(--acc);color:#fff;border-color:var(--acc)}
+.mbtns .mdel{background:var(--cbg);color:var(--ct);border-color:var(--ct)}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--acc);color:#fff;font-size:12px;padding:9px 16px;border-radius:8px;z-index:999;opacity:0;transition:opacity .25s;pointer-events:none}
+.toast.on{opacity:1}
+.empty{padding:18px;text-align:center;color:var(--tx3);font-size:12px;border:.5px dashed var(--bord);border-radius:8px;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">La Maison <em>Concert Planner</em></div>
+  <div class="hdr-r">
+    <span class="sav" id="sav" style="opacity:0"><i class="ti ti-refresh"></i> Sauvegarde...</span>
+    <span class="dpill">10 juin · 17h–21h</span>
+    <button class="btn" id="syncbtn" onclick="syncAll()"><i class="ti ti-refresh"></i> Sync</button>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="sn" id="st-tot">–</div><div class="sl">tâches</div></div>
+  <div class="stat"><div class="sn" id="st-don">–</div><div class="sl">complétées</div></div>
+  <div class="stat"><div class="sn" id="st-prf">–</div><div class="sl">interventions</div></div>
+  <div class="stat"><div class="sn" id="st-pre">–</div><div class="sl">prestataires</div></div>
+  <div class="pw"><div class="pl" id="pct-lbl">0%</div><div class="pb"><div class="pf" id="pf" style="width:0%"></div></div></div>
+</div>
+
+<div class="layout">
+<div class="sidebar" id="sidebar">
+  <div class="ng">
+    <div class="nl">Vue d'ensemble</div>
+    <div class="ni on" data-panel="planning"><i class="ti ti-layout-grid icon"></i><span class="nc"><span class="cat-name" style="pointer-events:none">Planning soirée</span></span></div>
+    <div class="ni" data-panel="floors"><i class="ti ti-building icon"></i><span class="nc"><span class="cat-name" style="pointer-events:none">Plan des étages</span></span></div>
+    <div class="ni" data-panel="retro"><i class="ti ti-timeline icon"></i><span class="nc"><span class="cat-name" style="pointer-events:none">Rétro-planning</span></span></div>
+  </div>
+  <div class="ng" id="task-nav">
+    <div class="nl">Logistique <button class="nl-add" onclick="addCategory()" title="Ajouter une catégorie"><i class="ti ti-plus"></i></button></div>
+    <!-- task nav items injected here -->
+  </div>
+  <div class="ng">
+    <div class="nl">Programme</div>
+    <div class="ni" data-panel="perfs"><i class="ti ti-music icon"></i><span class="nc"><span class="cat-name" style="pointer-events:none">Interventions</span></span><span class="nb" id="nb-perfs">0</span></div>
+  </div>
+  <div class="ng">
+    <div class="nl">Ressources</div>
+    <div class="ni" data-panel="prest"><i class="ti ti-building-store icon"></i><span class="nc"><span class="cat-name" style="pointer-events:none">Prestataires</span></span><span class="nb" id="nb-prest">0</span></div>
+  </div>
+</div>
+
+<div class="main" id="main">
+
+<!-- PLANNING -->
+<div class="panel on" id="panel-planning">
+  <div class="ph"><div class="ph-left"><div class="ptit">Planning de la soirée</div><div class="psub">Cliquer sur une case pour ajouter · Renommer les colonnes · <i class="ti ti-pencil" style="font-size:11px"></i> pour éditer un créneau</div></div></div>
+  <div class="legend">
+    <span class="li"><span class="ld" style="background:#E8F0F8;border:.5px solid #a8c4e0"></span>Groupe</span>
+    <span class="li"><span class="ld" style="background:#F0EEFB;border:.5px solid #c0b0e8"></span>Duo</span>
+    <span class="li"><span class="ld" style="background:#FBF2E0;border:.5px solid #d4b888"></span>Solo</span>
+    <span class="li"><span class="ld" style="background:#EEF4E8;border:.5px solid #b8d4a8"></span>Cocktail</span>
+    <span class="li"><span class="ld" style="background:#F2F0EC;border:.5px solid #C8C0B0"></span>Entracte</span>
+  </div>
+  <div class="planning-wrap"><div class="planning-grid" id="planning-grid"></div></div>
+  <div style="display:flex;gap:8px;margin-top:8px">
+    <button class="btn" onclick="addSlot()"><i class="ti ti-plus"></i> Ajouter un créneau</button>
+    <button class="btn" onclick="addRoom()"><i class="ti ti-plus"></i> Ajouter une colonne</button>
+  </div>
+</div>
+
+<!-- FLOORS -->
+<div class="panel" id="panel-floors">
+  <div class="ph"><div class="ph-left"><div class="ptit">Plan des étages</div><div class="psub">Cliquer sur le nom d'une salle pour renommer.</div></div></div>
+  <div class="fmap" id="fmap"></div>
+</div>
+
+<!-- RETRO PLANNING -->
+<div class="panel" id="panel-retro">
+  <div class="ph"><div class="ph-left"><div class="ptit">Rétro-planning</div><div class="psub">Toutes les tâches avec une échéance — regroupées par date.</div></div></div>
+  <div class="retro-grid" id="retro-grid"></div>
+</div>
+
+<!-- TASK PANELS injected dynamically -->
+
+<!-- PERFORMANCES -->
+<div class="panel" id="panel-perfs">
+  <div class="ph"><div class="ph-left"><div class="ptit">Interventions musicales</div><div class="psub">Groupe · Duo · Solo — répartis par étage et salle.</div></div></div>
+  <div class="fsec"><div class="fsec-hdr"><span class="ftag" style="background:var(--bbg);color:var(--bt)">Étage 1 — 1 salle</span></div><div class="pgrid" id="pg-1"></div><div class="ar"><input type="text" id="pn-1" placeholder="Nom de l'intervention..."><select id="pt-1"><option>Groupe</option><option>Duo</option><option>Solo</option></select><button onclick="addPerf('Étage 1','1')"><i class="ti ti-plus"></i> Ajouter</button></div></div>
+  <div class="fsec"><div class="fsec-hdr"><span class="ftag" style="background:var(--pbg);color:var(--pt)">Étage 2 — 1 salle</span></div><div class="pgrid" id="pg-2"></div><div class="ar"><input type="text" id="pn-2" placeholder="Nom de l'intervention..."><select id="pt-2"><option>Groupe</option><option>Duo</option><option>Solo</option></select><button onclick="addPerf('Étage 2','2')"><i class="ti ti-plus"></i> Ajouter</button></div></div>
+  <div class="fsec"><div class="fsec-hdr"><span class="ftag" style="background:var(--abg);color:var(--at)">Étage 3 — 2 salles</span></div>
+    <div class="twocol">
+      <div><div class="sublbl">Salle A</div><div class="pgrid single" id="pg-3a"></div><div class="ar"><input type="text" id="pn-3a" placeholder="Intervention..."><select id="pt-3a"><option>Groupe</option><option>Duo</option><option>Solo</option></select><button onclick="addPerf('Étage 3 — Salle A','3a')"><i class="ti ti-plus"></i></button></div></div>
+      <div><div class="sublbl">Salle B</div><div class="pgrid single" id="pg-3b"></div><div class="ar"><input type="text" id="pn-3b" placeholder="Intervention..."><select id="pt-3b"><option>Groupe</option><option>Duo</option><option>Solo</option></select><button onclick="addPerf('Étage 3 — Salle B','3b')"><i class="ti ti-plus"></i></button></div></div>
+    </div>
+  </div>
+  <div class="fsec"><div class="fsec-hdr"><span class="ftag" style="background:var(--cbg);color:var(--ct)">Étage 4 — 2 salles</span></div>
+    <div class="twocol">
+      <div><div class="sublbl">Salle A</div><div class="pgrid single" id="pg-4a"></div><div class="ar"><input type="text" id="pn-4a" placeholder="Intervention..."><select id="pt-4a"><option>Groupe</option><option>Duo</option><option>Solo</option></select><button onclick="addPerf('Étage 4 — Salle A','4a')"><i class="ti ti-plus"></i></button></div></div>
+      <div><div class="sublbl">Salle B</div><div class="pgrid single" id="pg-4b"></div><div class="ar"><input type="text" id="pn-4b" placeholder="Intervention..."><select id="pt-4b"><option>Groupe</option><option>Duo</option><option>Solo</option></select><button onclick="addPerf('Étage 4 — Salle B','4b')"><i class="ti ti-plus"></i></button></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PRESTATAIRES -->
+<div class="panel" id="panel-prest">
+  <div class="ph"><div class="ph-left"><div class="ptit">Prestataires</div><div class="psub">Sourcing, devis, confirmation.</div></div></div>
+  <div class="prestgrid" id="prestgrid"></div>
+  <div class="ar"><input type="text" id="inp-pn" placeholder="Nom du prestataire..."><select id="inp-pc"><option>Traiteur</option><option>Bar</option><option>Accordeur</option><option>Photo/Vidéo</option><option>Décoration</option><option>Coordination</option><option>Sécurité</option><option>Autre</option></select><button onclick="addPrest()"><i class="ti ti-plus"></i> Ajouter</button></div>
+</div>
+
+</div></div>
+
+<!-- MODAL BLOCK -->
+<div class="modal-bg" id="modal-block">
+  <div class="modal">
+    <h3 id="mb-title">Ajouter un bloc</h3>
+    <label>Titre</label><input type="text" id="mb-name" placeholder="Ex: Soon to Sound — groupe">
+    <label>Type</label>
+    <select id="mb-type"><option value="groupe">Groupe</option><option value="duo">Duo</option><option value="solo">Solo</option><option value="cocktail">Cocktail</option><option value="entracte">Entracte</option><option value="autre">Autre</option></select>
+    <label>Note (optionnel)</label><textarea id="mb-note" placeholder="Durée, programme..."></textarea>
+    <div class="mbtns"><button onclick="closeModal('modal-block')">Annuler</button><button class="mok" onclick="confirmBlock()">Ajouter</button></div>
+  </div>
+</div>
+
+<!-- MODAL SLOT -->
+<div class="modal-bg" id="modal-slot">
+  <div class="modal">
+    <h3>Modifier le créneau</h3>
+    <label>Horaire</label><input type="text" id="ms-time" placeholder="Ex: 17h30">
+    <label>Description</label><input type="text" id="ms-desc" placeholder="Ex: Bloc performances 1">
+    <div class="mbtns"><button onclick="closeModal('modal-slot')">Annuler</button><button class="mdel" onclick="delSlot()">Supprimer</button><button class="mok" onclick="confirmSlot()">Enregistrer</button></div>
+  </div>
+</div>
+
+<!-- MODAL NEW CATEGORY -->
+<div class="modal-bg" id="modal-cat">
+  <div class="modal">
+    <h3>Nouvelle catégorie</h3>
+    <label>Nom de la catégorie</label><input type="text" id="mc-name" placeholder="Ex: Concert Day Planning">
+    <div class="mbtns"><button onclick="closeModal('modal-cat')">Annuler</button><button class="mok" onclick="confirmCategory()">Créer</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const BASE='appjFsWFGN0rEXR34';
+const TOK='patj4C8b7t1oHdKKL.701b57d112662e1f1f6bb97608d62466a554dd071c897596edc66a2d165d7914';
+const TBL={tasks:'tbl3y5fP263K3ZEkB',perfs:'tblbhecPhsmGrWt21',prest:'tblI5RYEj2fG4aV1R',todos:'tbldQz3PUQqx7Z2Kc',slots:'tblzpCNKRzWQM9LRy',blocks:'tblbZ1hv3NzcCDXxu',rooms:'tblmHUGqHDHJ2bysI'};
+const ATV='https://api.airtable.com/v0/'+BASE+'/';
+const H={'Authorization':'Bearer '+TOK,'Content-Type':'application/json'};
+
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2500)}
+function setSav(on){var el=document.getElementById('sav');el.style.opacity=on?1:0;el.classList.toggle('spin',on)}
+function closeModal(id){document.getElementById(id).classList.remove('on')}
+document.querySelectorAll('.modal-bg').forEach(el=>el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('on')}));
+
+async function atAll(tbl,sort){
+  var all=[],off=null;
+  do{var url=ATV+encodeURIComponent(tbl)+'?pageSize=100'+(off?'&offset='+off:'')+(sort?'&sort[0][field]='+sort+'&sort[0][direction]=asc':'');var r=await fetch(url,{headers:H});var d=await r.json();if(d.records)all=all.concat(d.records);off=d.offset;}while(off);
+  return all;
+}
+async function atPost(tbl,fields){var r=await fetch(ATV+encodeURIComponent(tbl),{method:'POST',headers:H,body:JSON.stringify({fields})});return r.json()}
+async function atPatch(tbl,id,fields){var r=await fetch(ATV+encodeURIComponent(tbl)+'/'+id,{method:'PATCH',headers:H,body:JSON.stringify({fields})});return r.json()}
+async function atDel(tbl,id){await fetch(ATV+encodeURIComponent(tbl)+'/'+id,{method:'DELETE',headers:H})}
+
+// TIMELINE
+const TL_OPTIONS=['','J-45','J-30','J-15','J-7','J-3','J-1','Jour J'];
+const TL_CLASS={'J-45':'tl-j45','J-30':'tl-j30','J-15':'tl-j15','J-7':'tl-j7','J-3':'tl-j3','J-1':'tl-j1','Jour J':'tl-jj','':'tl-none'};
+const TL_ORDER={'J-45':1,'J-30':2,'J-15':3,'J-7':4,'J-3':5,'J-1':6,'Jour J':7,'':99};
+
+// STATE
+var S={
+  categories:[
+    {id:'lieu',name:'Lieu & accès',icon:'ti-map-pin'},
+    {id:'comms',name:'Communication',icon:'ti-mail'},
+    {id:'tech',name:'Scène & technique',icon:'ti-settings'},
+    {id:'kids',name:'Élèves & sécurité',icon:'ti-star'},
+    {id:'post',name:'Post-event',icon:'ti-check'},
+    {id:'cdp',name:'Concert Day Planning',icon:'ti-calendar-event'}
+  ],
+  tasks:{},
+  perfs:[],prests:[],
+  slots:[],rooms:[],blocks:[]
+};
+
+// Default tasks
+const TASK_DEF={
+  lieu:["Vérifier capacité max par étage (fire code NYC)","Confirmer accès ascenseur + escaliers pour invités","Tester la circulation entre étages chronométrée","Prévoir vestiaires / zone manteaux à l'entrée","Identifier zone backstage par étage pour les élèves","Vérifier accès PMR (ascenseur opérationnel ?)","Créer et imprimer signalétique directionnelle","Imprimer et afficher plan d'évacuation par étage","Acheter ou louer chaises supplémentaires par salle","Simuler le flux entracte avec chrono","Tester acoustique inter-étages","Vérifier climatisation / ventilation","Chercher agent de sécurité / vigile pour l'entrée","Confirmer agent sécurité : horaires + brief accès"],
+  comms:["Envoyer save-the-date aux familles (J-45)","Créer formulaire RSVP confirmation présence + invités (+1)","Relance RSVP non répondus (J-15)","Consolider liste finale invités confirmés","Envoyer confirmation + programme aux inscrits (J-7)","Imprimer programmes papier ou créer QR code","Collecter autorisation photo/vidéo des parents","Rédiger fiche de poste pour chaque bénévole","Créer groupe WhatsApp équipe jour J","Envoyer brief complet à toute l'équipe (J-3)","Désigner la personne dédiée stories le jour J","Briefer la personne stories : moments clés","Préparer templates stories (stickers / hashtags)","Stories J-3 : teaser de l'événement","Stories J-1 : backstage préparation","Envoyer email de remerciement aux familles (J+1)","Envoyer questionnaire satisfaction familles (J+3)"],
+  tech:["Contacter accordeur — vérifier disponibilité J-3","Accorder tous les pianos (J-3 minimum)","Vérifier état banquettes et pédales de chaque piano","Préparer partitions et pupitres dans chaque salle","Vérifier éclairage dans chaque salle","Créer fiche timing par étage pour coordinateurs","Organiser répétition générale dans les espaces (J-1)","Définir ordre de passage exact + durée par salle","Chronomètrer trajet entre chaque étage","Définir budget global de l'événement","Répartir le budget par poste","Créer tableau de suivi des dépenses vs budget","Valider budget total avant confirmation prestataires","Chercher 3 traiteurs cocktail NYC UES — devis","Comparer devis traiteur et sélectionner","Signer contrat traiteur + verser acompte","Confirmer livraison traiteur : horaire + accès","Chercher bartenders / bar mobile — devis","Confirmer quantités boissons","Vérifier licence alcool pour l'adresse","Décider : photographe interne ou externe","Chercher 2 photographes events — devis","Appel brief photographe : moments clés","Signer contrat photographe","Contacter fleuriste UES — devis déco pianos","Confirmer livraison fleuriste J matin avant 15h","Acheter verres et vaisselle cocktail","Confirmer coordinateurs et briefer l'équipe"],
+  kids:["Désigner un adulte référent par étage","Aménager zone backstage : chaises + eau + calme","Acheter collations légères pour les enfants (backstage)","Briefer tous les élèves sur le déroulé","Rédiger protocole urgence médicale","Acheter et préparer trousse de premiers secours","Établir liste élèves confirmés par salle et passage","Règle : aucun élève ne quitte sans parent identifié"],
+  post:["Débrief équipe à J+1 (30 min)","Envoyer email de remerciement aux familles","Partager les photos aux parents (avec consentement)","Questionnaire feedback familles et élèves","Nettoyer et remettre les espaces en état","Archiver programme et notes pour édition suivante","Faire bilan financier final","Archiver stories et contenus Instagram"],
+  cdp:["17h00 — Accueillir familles à l'entrée et orienter","17h00 — Stories : filmer arrivée et cocktail RDC","17h15 — Vérifier que chaque coordinateur est en poste","17h30 — Top départ bloc performances 1","17h30 — Stories : premières performances groupes","18h30 — Déclencher entracte simultanément tous étages","18h30 — Chronomètre entracte : 30 min max","18h30 — Stories : cocktail + ambiance familles","19h00 — Top départ bloc performances 2","19h00 — Stories : performances duo et solo","20h00 — Déclencher entracte final","20h30 — Rassembler tout le monde pour la finale","20h30 — Stories : filmer la finale","21h00 — Vérifier que chaque élève repart avec son parent","Post-event : publier highlights Instagram"]
+};
+
+const PTODOS={Groupe:['Confirmer liste des élèves','Choisir le morceau','Répétition groupe #1','Répétition groupe #2','Briefing scène J-1','Timing et ordre confirmés'],Duo:['Confirmer les deux élèves','Choisir le morceau','Répétition duo #1','Répétition duo #2','Briefing scène J-1','Ordre confirmé'],Solo:["Confirmer l'élève",'Choisir le morceau','Répétition #1','Répétition #2','Répétition #3','Briefing scène J-1']};
+const ETAGE_PG={'Étage 1':'pg-1','Étage 2':'pg-2','Étage 3 — Salle A':'pg-3a','Étage 3 — Salle B':'pg-3b','Étage 4 — Salle A':'pg-4a','Étage 4 — Salle B':'pg-4b'};
+const PREST_DEF=[{name:'Traiteur cocktail',cat:'Traiteur',desc:'Cocktail dinatoire — 6–8 pièces/pers, ~$35–50/pers.',tasks:['Demander 3 devis','Confirmer menu','Confirmer nb serveurs','Signer contrat + acompte']},{name:'Bar mobile',cat:'Bar',desc:'Mocktails enfants + vins/champagne adultes.',tasks:['Sourcer bartender','Confirmer quantités','Vérifier licence alcool']},{name:'Accordeur pianos',cat:'Accordeur',desc:'6 pianos Steinway. J-3 minimum.',tasks:['Contacter accordeur','Fixer date','Confirmer tarif']},{name:'Photographe',cat:'Photo/Vidéo',desc:'1 photographe circulant. Autorisation parentale requise.',tasks:['Sourcer photographe','Brief moments clés','Signer contrat']},{name:'Décoration florale',cat:'Décoration',desc:'Arrangements sur les pianos et couloirs.',tasks:['Contacter fleuriste','Définir palette','Confirmer livraison']},{name:'Coordinateur(s)',cat:'Coordination',desc:'1 coordinateur général + 1 par étage.',tasks:['Définir rôles','Rédiger fiche de poste','Briefing J-3']},{name:'Agent de sécurité',cat:'Sécurité',desc:'Contrôle accès entrée. Vérifier licence alcool.',tasks:['Sourcer agent','Confirmer horaires','Brief accès invités vs prestataires']}];
+const SLOT_DEF=[{time:'17h00',desc:'Accueil familles',order:1},{time:'17h30',desc:'Bloc performances 1',order:2},{time:'18h30',desc:'Entracte',order:3},{time:'19h00',desc:'Bloc performances 2',order:4},{time:'20h00',desc:'Entracte final',order:5},{time:'20h30',desc:'Finale & clôture',order:6}];
+const ROOM_DEF=[{name:'RDC — Accueil',floor:'RDC',order:1},{name:'Étage 1',floor:'Étage 1',order:2},{name:'Étage 2',floor:'Étage 2',order:3},{name:'Étage 3 — Salle A',floor:'Étage 3',order:4},{name:'Étage 3 — Salle B',floor:'Étage 3',order:5},{name:'Étage 4 — Salle A',floor:'Étage 4',order:6},{name:'Étage 4 — Salle B',floor:'Étage 4',order:7}];
+
+// ---- NAV ----
+function renderNav(){
+  var nav=document.getElementById('task-nav');
+  // Keep header
+  var hdr=nav.querySelector('.nl');
+  nav.innerHTML='';nav.appendChild(hdr);
+  S.categories.forEach(cat=>{
+    var ni=document.createElement('div');ni.className='ni';ni.dataset.panel='task-'+cat.id;
+    ni.innerHTML=`<i class="ti ${cat.icon} icon"></i><span class="nc"><input class="cat-name" value="${cat.name}" title="Cliquer pour renommer" onchange="renameCategory('${cat.id}',this.value)" onclick="event.stopPropagation()"></span><span class="nb" id="nb-${cat.id}">0</span><button class="ni-del" onclick="event.stopPropagation();delCategory('${cat.id}')" title="Supprimer"><i class="ti ti-x"></i></button>`;
+    ni.addEventListener('click',function(){navTo('task-'+cat.id);});
+    nav.appendChild(ni);
+  });
+}
+
+function navTo(panel){
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  var el=document.querySelector('[data-panel="'+panel+'"]');
+  if(el)el.classList.add('on');
+  var p=document.getElementById('panel-'+panel);
+  if(p)p.classList.add('on');
+  else if(panel.startsWith('task-')){
+    renderTaskPanel(panel.replace('task-',''));
+    var np=document.getElementById('panel-'+panel);if(np)np.classList.add('on');
+  }
+}
+
+document.querySelectorAll('.ni').forEach(el=>el.addEventListener('click',function(){
+  navTo(this.dataset.panel);
+}));
+
+// ---- CATEGORIES ----
+function addCategory(){document.getElementById('mc-name').value='';document.getElementById('modal-cat').classList.add('on');setTimeout(()=>document.getElementById('mc-name').focus(),50)}
+function confirmCategory(){
+  var name=document.getElementById('mc-name').value.trim();if(!name)return;
+  var id='cat-'+Date.now();
+  S.categories.push({id,name,icon:'ti-list'});
+  S.tasks[id]=[];
+  renderNav();renderTaskPanel(id);closeModal('modal-cat');
+  setTimeout(()=>navTo('task-'+id),50);
+}
+function renameCategory(id,name){
+  var cat=S.categories.find(c=>c.id===id);if(cat)cat.name=name;
+  var panel=document.getElementById('panel-task-'+id);
+  if(panel){var t=panel.querySelector('.ptit');if(t)t.textContent=name;}
+}
+function delCategory(id){
+  if(!confirm('Supprimer cette catégorie et toutes ses tâches ?'))return;
+  S.categories=S.categories.filter(c=>c.id!==id);
+  delete S.tasks[id];
+  var panel=document.getElementById('panel-task-'+id);if(panel)panel.remove();
+  renderNav();navTo('planning');
+}
+
+// ---- TASK PANELS ----
+function renderTaskPanel(key){
+  var cat=S.categories.find(c=>c.id===key);if(!cat)return;
+  var existing=document.getElementById('panel-task-'+key);
+  if(existing)existing.remove();
+  var div=document.createElement('div');div.className='panel';div.id='panel-task-'+key;
+  div.innerHTML=`<div class="ph"><div class="ph-left"><div class="ptit">${cat.name}</div><div class="psub">Cliquer sur le texte d'une tâche pour l'éditer · <i class="ti ti-clock" style="font-size:11px"></i> pour l'échéance</div></div></div><div class="tlist" id="tl-${key}"></div><div class="ar"><input type="text" id="inp-${key}" placeholder="Nouvelle tâche..."><select class="tl-select" id="tls-${key}"><option value="">Pas d'échéance</option>${TL_OPTIONS.filter(x=>x).map(o=>`<option value="${o}">${o}</option>`).join('')}</select><button onclick="addTask('${key}')"><i class="ti ti-plus"></i> Ajouter</button></div>`;
+  document.getElementById('main').appendChild(div);
+  renderTasks(key);
+}
+
+// ---- TASKS ----
+function renderTasks(key){
+  var list=document.getElementById('tl-'+key);if(!list)return;list.innerHTML='';
+  if(!S.tasks[key]||!S.tasks[key].length){list.innerHTML='<div class="empty">Aucune tâche — ajouter la première ci-dessous.</div>';return}
+  S.tasks[key].forEach(t=>list.appendChild(mkTaskWrap(t,key)));
+}
+
+function tlBadgeHtml(tl,tid,key){
+  var cls=TL_CLASS[tl||'']||'tl-none';
+  var label=tl||'Échéance';
+  return `<select class="tl-badge ${cls}" onchange="updateTaskTimeline('${tid}','${key}',this.value)" title="Échéance" style="appearance:none;cursor:pointer">${TL_OPTIONS.map(o=>`<option value="${o}" ${(tl||'')==o?'selected':''}>${o||'–'}</option>`).join('')}</select>`;
+}
+
+function mkTaskWrap(t,key){
+  var wrap=document.createElement('div');wrap.className='task-wrap';wrap.id='tw-'+t.id;
+  // Main row
+  var tr=document.createElement('div');tr.className='tr';
+  tr.innerHTML=`<input type="checkbox" ${t.done?'checked':''} onchange="toggleTask('${t.id}','${key}',this)"><input class="tt ${t.done?'done':''}" value="${escHtml(t.text)}" onchange="editTask('${t.id}','${key}',this.value)"><div class="tr-actions">${tlBadgeHtml(t.timeline,t.id,key)}<button class="tr-btn" onclick="toggleSubtasks('${t.id}')" title="Sous-tâches"><i class="ti ti-subtask"></i></button><button class="tr-btn del" onclick="delTask('${t.id}','${key}')" title="Supprimer"><i class="ti ti-x"></i></button></div>`;
+  wrap.appendChild(tr);
+  // Subtasks
+  var subList=document.createElement('div');subList.className='subtask-list';subList.id='sl-'+t.id;
+  subList.style.display=t.showSubs?'flex':'none';
+  (t.subtasks||[]).forEach(s=>subList.appendChild(mkSubRow(s,t.id,key)));
+  wrap.appendChild(subList);
+  // Add subtask btn
+  var addSub=document.createElement('button');addSub.className='add-sub-btn';addSub.id='asb-'+t.id;addSub.style.display=t.showSubs?'flex':'none';
+  addSub.innerHTML='<i class="ti ti-plus"></i> Sous-tâche';addSub.onclick=()=>addSubtask(t.id,key);
+  wrap.appendChild(addSub);
+  return wrap;
+}
+
+function mkSubRow(s,tid,key){
+  var d=document.createElement('div');d.className='str';d.id='sr-'+s.id;
+  d.innerHTML=`<input type="checkbox" ${s.done?'checked':''} onchange="toggleSub('${s.id}','${tid}','${key}',this)"><input class="stt ${s.done?'done':''}" value="${escHtml(s.text)}" onchange="editSub('${s.id}','${tid}','${key}',this.value)"><div class="str-actions"><button class="str-btn del" onclick="delSub('${s.id}','${tid}','${key}')" title="Supprimer"><i class="ti ti-x"></i></button></div>`;
+  return d;
+}
+
+function toggleSubtasks(tid){
+  var t=findTask(tid);if(!t)return;
+  t.showSubs=!t.showSubs;
+  var sl=document.getElementById('sl-'+tid);var ab=document.getElementById('asb-'+tid);
+  if(sl)sl.style.display=t.showSubs?'flex':'none';
+  if(ab)ab.style.display=t.showSubs?'flex':'none';
+}
+
+function findTask(id){
+  for(var k of Object.keys(S.tasks)){var t=S.tasks[k].find(x=>x.id===id);if(t)return t;}
+  return null;
+}
+function findTaskKey(id){
+  for(var k of Object.keys(S.tasks)){if(S.tasks[k].find(x=>x.id===id))return k;}
+  return null;
+}
+
+function escHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+
+async function toggleTask(id,key,cb){
+  var t=S.tasks[key]&&S.tasks[key].find(x=>x.id===id);if(!t)return;
+  t.done=cb.checked;
+  var inp=document.querySelector('#tw-'+id+' .tt');if(inp)inp.classList.toggle('done',t.done);
+  updateStats();setSav(true);
+  if(!id.startsWith('def-'))try{await atPatch(TBL.tasks,id,{Status:t.done?'Fait':'À faire'})}catch(e){}setSav(false);
+}
+async function editTask(id,key,val){
+  var t=S.tasks[key]&&S.tasks[key].find(x=>x.id===id);if(!t)return;
+  t.text=val;setSav(true);
+  if(!id.startsWith('def-'))try{await atPatch(TBL.tasks,id,{Name:val})}catch(e){}setSav(false);
+}
+async function updateTaskTimeline(id,key,val){
+  var t=S.tasks[key]&&S.tasks[key].find(x=>x.id===id);if(!t)return;
+  t.timeline=val;
+  // update badge class
+  var sel=document.querySelector('#tw-'+id+' .tl-badge');
+  if(sel){sel.className='tl-badge '+(TL_CLASS[val]||'tl-none');}
+  updateStats();renderRetro();setSav(true);
+  if(!id.startsWith('def-'))try{await atPatch(TBL.tasks,id,{Timeline:val})}catch(e){}setSav(false);
+}
+async function delTask(id,key){
+  S.tasks[key]=S.tasks[key].filter(x=>x.id!==id);
+  var el=document.getElementById('tw-'+id);if(el)el.remove();
+  if(!S.tasks[key].length)renderTasks(key);
+  updateStats();updateCounts();renderRetro();setSav(true);
+  if(!id.startsWith('def-'))try{await atDel(TBL.tasks,id)}catch(e){}setSav(false);
+}
+async function addTask(key){
+  var inp=document.getElementById('inp-'+key);var tls=document.getElementById('tls-'+key);
+  var txt=inp.value.trim();if(!txt)return;
+  var tl=tls?tls.value:'';
+  var tid='loc-'+Date.now();var t={id:tid,text:txt,done:false,timeline:tl,subtasks:[],showSubs:false};
+  if(!S.tasks[key])S.tasks[key]=[];
+  S.tasks[key].push(t);
+  var list=document.getElementById('tl-'+key);list.querySelectorAll('.empty').forEach(e=>e.remove());list.appendChild(mkTaskWrap(t,key));
+  inp.value='';updateStats();updateCounts();renderRetro();setSav(true);
+  try{var r=await atPost(TBL.tasks,{Name:txt,Category:key,Status:'À faire',Timeline:tl});if(r.id)t.id=r.id;}catch(e){}setSav(false);
+}
+
+// ---- SUBTASKS ----
+async function addSubtask(tid,key){
+  var text=prompt('Sous-tâche :');if(!text||!text.trim())return;
+  var t=S.tasks[key]&&S.tasks[key].find(x=>x.id===tid);if(!t)return;
+  if(!t.subtasks)t.subtasks=[];
+  var s={id:'sub-'+Date.now(),text:text.trim(),done:false};
+  t.subtasks.push(s);t.showSubs=true;
+  var sl=document.getElementById('sl-'+tid);
+  if(sl){sl.style.display='flex';sl.appendChild(mkSubRow(s,tid,key));}
+  var ab=document.getElementById('asb-'+tid);if(ab)ab.style.display='flex';
+  updateStats();
+}
+async function toggleSub(sid,tid,key,cb){
+  var t=S.tasks[key]&&S.tasks[key].find(x=>x.id===tid);if(!t)return;
+  var s=t.subtasks&&t.subtasks.find(x=>x.id===sid);if(!s)return;
+  s.done=cb.checked;
+  var inp=document.querySelector('#sr-'+sid+' .stt');if(inp)inp.classList.toggle('done',s.done);
+  updateStats();
+}
+async function editSub(sid,tid,key,val){
+  var t=S.tasks[key]&&S.tasks[key].find(x=>x.id===tid);if(!t)return;
+  var s=t.subtasks&&t.subtasks.find(x=>x.id===sid);if(!s)return;
+  s.text=val;
+}
+async function delSub(sid,tid,key){
+  var t=S.tasks[key]&&S.tasks[key].find(x=>x.id===tid);if(!t)return;
+  t.subtasks=t.subtasks.filter(x=>x.id!==sid);
+  var el=document.getElementById('sr-'+sid);if(el)el.remove();
+  updateStats();
+}
+
+// ---- RETRO PLANNING ----
+function renderRetro(){
+  var grid=document.getElementById('retro-grid');if(!grid)return;grid.innerHTML='';
+  var byTl={};
+  Object.keys(S.tasks).forEach(key=>{
+    (S.tasks[key]||[]).forEach(t=>{
+      if(!t.timeline)return;
+      if(!byTl[t.timeline])byTl[t.timeline]=[];
+      byTl[t.timeline].push({...t,catKey:key});
+    });
+  });
+  var ordered=Object.keys(byTl).sort((a,b)=>(TL_ORDER[a]||99)-(TL_ORDER[b]||99));
+  if(!ordered.length){grid.innerHTML='<div class="empty">Aucune tâche avec une échéance définie.<br>Assigner des échéances (J-45, J-7...) depuis les onglets logistique.</div>';return;}
+  // Layout: responsive columns
+  grid.style.gridTemplateColumns='repeat(auto-fill,minmax(260px,1fr))';
+  ordered.forEach(tl=>{
+    var tasks=byTl[tl];
+    var cls=TL_CLASS[tl]||'tl-none';
+    var col=document.createElement('div');col.className='retro-col';
+    var hdr=document.createElement('div');hdr.className='retro-col-hdr';
+    hdr.innerHTML=`<span class="tl-badge ${cls}">${tl}</span><span style="font-size:11px;color:var(--tx3)">${tasks.length} tâche${tasks.length>1?'s':''}</span>`;
+    col.appendChild(hdr);
+    var list=document.createElement('div');list.className='retro-tasks';
+    tasks.forEach(t=>{
+      var cat=S.categories.find(c=>c.id===t.catKey);
+      var d=document.createElement('div');d.className='retro-task';
+      d.style.borderLeftColor=getBorderColor(t.catKey);
+      d.innerHTML=`<div>${t.text}</div><div class="rt-cat">${cat?cat.name:t.catKey}</div>`;
+      if(t.done)d.style.opacity='.5';
+      list.appendChild(d);
+    });
+    col.appendChild(list);grid.appendChild(col);
+  });
+}
+function getBorderColor(key){
+  var map={lieu:'#888',comms:'#3A7BD5',tech:'#6C47D4',kids:'#D45A30',post:'#3D7A1A',cdp:'#2C2420'};
+  return map[key]||'#aaa';
+}
+
+// ---- PLANNING ----
+var modalCtx={slotId:null,roomId:null};var slotCtx={id:null};
+function renderPlanning(){
+  var grid=document.getElementById('planning-grid');
+  var slots=[...S.slots].sort((a,b)=>a.order-b.order);
+  var rooms=[...S.rooms].sort((a,b)=>a.order-b.order);
+  grid.style.gridTemplateColumns='88px '+rooms.map(()=>'1fr').join(' ');
+  grid.innerHTML='';
+  var corner=document.createElement('div');corner.className='pg-corner';corner.textContent='Horaire';grid.appendChild(corner);
+  rooms.forEach(r=>{
+    var d=document.createElement('div');d.className='pg-room-hdr';
+    var inp=document.createElement('input');inp.className='room-inp';inp.value=r.name;inp.addEventListener('change',()=>updateRoomName(r,inp.value));
+    var delbtn=document.createElement('button');delbtn.className='room-del-btn';delbtn.innerHTML='<i class="ti ti-x"></i>';delbtn.onclick=()=>delRoom(r);
+    d.appendChild(inp);d.appendChild(delbtn);grid.appendChild(d);
+  });
+  slots.forEach(sl=>{
+    var tc=document.createElement('div');tc.className='pg-time-cell';
+    tc.innerHTML='<div><div class="tc-time">'+sl.time+'</div><div class="tc-desc">'+sl.desc+'</div></div><button class="pg-time-edit" onclick="openSlotModal(\''+sl.id+'\')"><i class="ti ti-pencil"></i></button>';
+    grid.appendChild(tc);
+    rooms.forEach(r=>{
+      var cell=document.createElement('div');cell.className='pg-slot';
+      S.blocks.filter(b=>b.slotId===sl.id&&b.roomId===r.id).forEach(b=>{
+        var bd=document.createElement('div');bd.className='pg-block blk-'+b.type;
+        bd.innerHTML='<div class="pb-title">'+b.title+'</div>'+(b.note?'<div class="pb-note">'+b.note+'</div>':'')+'<button class="pb-del" onclick="delBlock(\''+b.id+'\')"><i class="ti ti-x"></i></button>';
+        cell.appendChild(bd);
+      });
+      var wrap=document.createElement('div');wrap.className='pg-add-wrap';
+      var ab=document.createElement('button');ab.className='pg-add-btn';ab.textContent='+ Ajouter';ab.onclick=()=>openBlockModal(sl.id,r.id,sl.time,r.name);
+      wrap.appendChild(ab);cell.appendChild(wrap);grid.appendChild(cell);
+    });
+  });
+}
+function openBlockModal(slotId,roomId,time,roomName){modalCtx={slotId,roomId};document.getElementById('mb-title').textContent='Ajouter — '+time+' · '+roomName;document.getElementById('mb-name').value='';document.getElementById('mb-type').value='groupe';document.getElementById('mb-note').value='';document.getElementById('modal-block').classList.add('on');setTimeout(()=>document.getElementById('mb-name').focus(),50)}
+async function confirmBlock(){var title=document.getElementById('mb-name').value.trim();if(!title)return;var type=document.getElementById('mb-type').value;var note=document.getElementById('mb-note').value.trim();var b={id:'loc-'+Date.now(),slotId:modalCtx.slotId,roomId:modalCtx.roomId,title,type,note};S.blocks.push(b);closeModal('modal-block');renderPlanning();setSav(true);try{var r=await atPost(TBL.blocks,{Title:title,Type:type,Note:note,SlotId:modalCtx.slotId,RoomName:S.rooms.find(x=>x.id===modalCtx.roomId)?.name||''});if(r.id)b.id=r.id;}catch(e){}setSav(false)}
+async function delBlock(id){S.blocks=S.blocks.filter(b=>b.id!==id);renderPlanning();setSav(true);if(!id.startsWith('loc-'))try{await atDel(TBL.blocks,id)}catch(e){}setSav(false)}
+function openSlotModal(id){slotCtx={id};var sl=S.slots.find(s=>s.id===id);if(!sl)return;document.getElementById('ms-time').value=sl.time;document.getElementById('ms-desc').value=sl.desc;document.getElementById('modal-slot').classList.add('on');setTimeout(()=>document.getElementById('ms-time').focus(),50)}
+async function confirmSlot(){var sl=S.slots.find(s=>s.id===slotCtx.id);if(!sl)return;sl.time=document.getElementById('ms-time').value.trim()||sl.time;sl.desc=document.getElementById('ms-desc').value.trim();closeModal('modal-slot');renderPlanning();setSav(true);if(!sl.id.startsWith('loc-'))try{await atPatch(TBL.slots,sl.id,{Time:sl.time,Description:sl.desc})}catch(e){}setSav(false)}
+async function delSlot(){var id=slotCtx.id;S.slots=S.slots.filter(s=>s.id!==id);S.blocks=S.blocks.filter(b=>b.slotId!==id);closeModal('modal-slot');renderPlanning();setSav(true);if(!id.startsWith('loc-'))try{await atDel(TBL.slots,id)}catch(e){}setSav(false)}
+async function addSlot(){var order=S.slots.length?Math.max(...S.slots.map(s=>s.order))+1:1;var sl={id:'loc-'+Date.now(),time:'–h–',desc:'Nouveau créneau',order};S.slots.push(sl);renderPlanning();setSav(true);setTimeout(()=>openSlotModal(sl.id),50);try{var r=await atPost(TBL.slots,{Time:sl.time,Description:sl.desc,Order:order});if(r.id)sl.id=r.id;}catch(e){}setSav(false)}
+async function addRoom(){var order=S.rooms.length?Math.max(...S.rooms.map(r=>r.order))+1:1;var rm={id:'loc-'+Date.now(),name:'Nouvelle salle',floor:'',order};S.rooms.push(rm);renderPlanning();renderFloors();setSav(true);try{var r=await atPost(TBL.rooms,{Name:rm.name,Floor:'',Order:order});if(r.id)rm.id=r.id;}catch(e){}setSav(false)}
+async function updateRoomName(room,name){room.name=name;renderFloors();setSav(true);if(!room.id.startsWith('loc-'))try{await atPatch(TBL.rooms,room.id,{Name:name})}catch(e){}setSav(false)}
+async function delRoom(room){S.rooms=S.rooms.filter(r=>r.id!==room.id);S.blocks=S.blocks.filter(b=>b.roomId!==room.id);renderPlanning();renderFloors();setSav(true);if(!room.id.startsWith('loc-'))try{await atDel(TBL.rooms,room.id)}catch(e){}setSav(false)}
+
+// ---- FLOORS ----
+function renderFloors(){
+  var fmap=document.getElementById('fmap');fmap.innerHTML='';
+  var colors=['gbg','bbg','pbg','abg','cbg','xbg'];var bcs=['#b8d4a8','#a8c4e0','#c0b0e8','#d4b888','#d4a898','#C8C0B0'];var ci=0;
+  var floorMap={};var rooms=[...S.rooms].sort((a,b)=>a.order-b.order);
+  rooms.forEach(r=>{var fl=r.floor||'Autre';if(!floorMap[fl])floorMap[fl]=[];floorMap[fl].push(r);});
+  Object.entries(floorMap).forEach(([floor,rms])=>{
+    var frow=document.createElement('div');frow.className='frow';
+    var flbl=document.createElement('div');flbl.className='flbl';flbl.textContent=floor;frow.appendChild(flbl);
+    var frooms=document.createElement('div');frooms.className='frooms';
+    rms.forEach(rm=>{
+      var col=colors[ci%colors.length];var bc=bcs[ci%bcs.length];
+      var fr=document.createElement('div');fr.className='froom';fr.style.background='var(--'+col+')';fr.style.borderColor=bc;
+      var inp=document.createElement('input');inp.className='room-rename';inp.value=rm.name;inp.addEventListener('change',()=>updateRoomName(rm,inp.value));
+      fr.appendChild(inp);var fp=document.createElement('div');fp.className='fp';fp.innerHTML='<i class="ti ti-piano" style="font-size:11px"></i> Piano Steinway';fr.appendChild(fp);frooms.appendChild(fr);ci++;
+    });
+    frow.appendChild(frooms);fmap.appendChild(frow);
+  });
+}
+
+// ---- PERFS ----
+function renderPerfs(){Object.values(ETAGE_PG).forEach(id=>{var el=document.getElementById(id);if(el)el.innerHTML='';});S.perfs.forEach(p=>{var pgid=ETAGE_PG[p.etage];if(pgid)appendPerfCard(p,pgid);});}
+function appendPerfCard(p,pgid){
+  var grid=document.getElementById(pgid);if(!grid)return;
+  var tc={Groupe:'tg',Duo:'td',Solo:'ts'}[p.type]||'tg';
+  var todosHtml=(p.todos||[]).map(t=>'<div class="ptodo"><input type="checkbox" id="pd-'+t.id+'" '+(t.done?'checked':'')+' onchange="togglePTodo(\''+p.id+'\',\''+t.id+'\',this)"><label for="pd-'+t.id+'" class="'+(t.done?'done':'')+'">'+t.text+'</label></div>').join('');
+  var d=document.createElement('div');d.className='pcard';d.id='pc-'+p.id;
+  d.innerHTML='<div class="pcard-hdr"><span class="ptype '+tc+'">'+p.type+'</span><span class="pname">'+p.name+'</span><button class="pdel" onclick="delPerf(\''+p.id+'\')"><i class="ti ti-x"></i></button></div><div class="ptodos">'+(todosHtml||'')+'</div>';
+  grid.appendChild(d);
+}
+async function addPerf(etage,key){var ni=document.getElementById('pn-'+key);var ti=document.getElementById('pt-'+key);var name=ni.value.trim();if(!name)return;var type=ti.value;var todos=PTODOS[type].map(t=>({id:'loc-'+Math.random(),text:t,done:false}));var p={id:'loc-'+Date.now(),name,type,etage,todos};S.perfs.push(p);appendPerfCard(p,ETAGE_PG[etage]);ni.value='';updateStats();updateCounts();setSav(true);try{var r=await atPost(TBL.perfs,{Name:name,Type:type,Etage:etage,Status:'Backlog'});if(r.id){p.id=r.id;for(var t of p.todos){var tr=await atPost(TBL.todos,{Name:t.text,Performance:[r.id],Done:false});if(tr.id)t.id=tr.id;}}}catch(e){}setSav(false)}
+async function delPerf(id){S.perfs=S.perfs.filter(p=>p.id!==id);var el=document.getElementById('pc-'+id);if(el)el.remove();updateStats();updateCounts();setSav(true);if(!id.startsWith('loc-'))try{await atDel(TBL.perfs,id)}catch(e){}setSav(false)}
+async function togglePTodo(pid,tid,cb){var p=S.perfs.find(x=>x.id===pid);if(!p)return;var t=p.todos.find(x=>x.id===tid);if(!t)return;t.done=cb.checked;cb.nextElementSibling.classList.toggle('done',t.done);updateStats();setSav(true);if(!tid.startsWith('loc-'))try{await atPatch(TBL.todos,tid,{Done:t.done})}catch(e){}setSav(false)}
+
+// ---- PRESTS ----
+function renderPrests(){var g=document.getElementById('prestgrid');g.innerHTML='';S.prests.forEach(p=>g.appendChild(mkPrest(p)));}
+function mkPrest(p){var opts=['À sourcer','Devis demandé','Confirmé'].map(o=>'<option '+(p.status===o?'selected':'')+'>'+o+'</option>').join('');var th=(p.tasks||[]).map((t,i)=>'<div class="ptask"><input type="checkbox" id="prt-'+p.id+'-'+i+'"><label for="prt-'+p.id+'-'+i+'">'+t+'</label></div>').join('');var d=document.createElement('div');d.className='prestcard';d.id='pr-'+p.id;d.innerHTML='<div class="prestcard-hdr"><div class="pico"><i class="ti ti-building-store"></i></div><div class="pinfo"><div class="pname2">'+p.name+'</div><div class="pcat">'+p.cat+'</div></div><select class="psel" onchange="updPrestSt(\''+p.id+'\',this.value)">'+opts+'</select></div>'+(p.desc?'<div class="pdesc">'+p.desc+'</div>':'')+'<div class="ptasks">'+th+'</div>';return d;}
+async function addPrest(){var name=document.getElementById('inp-pn').value.trim();if(!name)return;var cat=document.getElementById('inp-pc').value;var p={id:'loc-'+Date.now(),name,cat,desc:'',tasks:['Sourcer / contacter','Demander un devis','Confirmer et signer'],status:'À sourcer'};S.prests.push(p);document.getElementById('prestgrid').appendChild(mkPrest(p));document.getElementById('inp-pn').value='';updateStats();updateCounts();setSav(true);try{var r=await atPost(TBL.prest,{Name:name,Categorie:cat,Status:'À sourcer'});if(r.id)p.id=r.id;}catch(e){}setSav(false)}
+async function updPrestSt(id,val){var p=S.prests.find(x=>x.id===id);if(!p)return;p.status=val;setSav(true);if(!id.startsWith('loc-'))try{await atPatch(TBL.prest,id,{Status:val})}catch(e){}setSav(false);toast('Statut mis à jour ✓')}
+
+// ---- STATS ----
+function updateStats(){
+  var tot=0,don=0;
+  Object.values(S.tasks).forEach(arr=>arr.forEach(t=>{tot++;if(t.done)don++;(t.subtasks||[]).forEach(s=>{tot++;if(s.done)don++;})}));
+  S.perfs.forEach(p=>p.todos.forEach(t=>{tot++;if(t.done)don++;}));
+  var pct=tot>0?Math.round(don/tot*100):0;
+  document.getElementById('st-tot').textContent=tot;document.getElementById('st-don').textContent=don;
+  document.getElementById('st-prf').textContent=S.perfs.length;document.getElementById('st-pre').textContent=S.prests.length;
+  document.getElementById('pf').style.width=pct+'%';document.getElementById('pct-lbl').textContent=pct+'% complété';
+}
+function updateCounts(){
+  S.categories.forEach(cat=>{var el=document.getElementById('nb-'+cat.id);if(el)el.textContent=(S.tasks[cat.id]||[]).length;});
+  document.getElementById('nb-perfs').textContent=S.perfs.length;
+  document.getElementById('nb-prest').textContent=S.prests.length;
+}
+
+// ---- SYNC ----
+async function syncAll(){
+  var btn=document.getElementById('syncbtn');btn.classList.add('spin');
+  try{
+    var [tasks,perfs,ptodos,prests,slots,blocks,rooms]=await Promise.all([atAll(TBL.tasks),atAll(TBL.perfs),atAll(TBL.todos),atAll(TBL.prest),atAll(TBL.slots,'Order'),atAll(TBL.blocks),atAll(TBL.rooms,'Order')]);
+    // Tasks — rebuild categories from Airtable data only
+    var catMap={
+      'Lieu':{id:'lieu',name:'Lieu & accès',icon:'ti-map-pin'},
+      'Comms':{id:'comms',name:'Communication',icon:'ti-mail'},
+      'Technique':{id:'tech',name:'Scène & technique',icon:'ti-settings'},
+      'Élèves':{id:'kids',name:'Élèves & sécurité',icon:'ti-star'},
+      'Post-event':{id:'post',name:'Post-event',icon:'ti-check'},
+      'Concert Day Planning':{id:'cdp',name:'Concert Day Planning',icon:'ti-calendar-event'}
+    };
+    var newTasks={};var newCats=[];var seenCats={};
+    tasks.forEach(r=>{
+      var rawCat=r.fields.Category||'Lieu';
+      var mapped=catMap[rawCat];
+      var id=mapped?mapped.id:rawCat.toLowerCase().replace(/\s+/g,'-');
+      var name=mapped?mapped.name:rawCat;
+      var icon=mapped?mapped.icon:'ti-list';
+      if(!seenCats[id]){seenCats[id]=true;newCats.push({id,name,icon});newTasks[id]=[];}
+      newTasks[id].push({id:r.id,text:r.fields.Name||'',done:r.fields.Status==='Fait',timeline:r.fields.Timeline||'',subtasks:[],showSubs:false});
+    });
+    // keep any local-only categories not in airtable
+    S.categories.forEach(c=>{if(!seenCats[c.id]){newCats.push(c);newTasks[c.id]=S.tasks[c.id]||[];}});
+    S.categories=newCats;S.tasks=newTasks;
+    var tdmap={};ptodos.forEach(r=>{(r.fields.Performance||[]).forEach(pid=>{if(!tdmap[pid])tdmap[pid]=[];tdmap[pid].push({id:r.id,text:r.fields.Name||'',done:!!r.fields.Done});});});
+    S.perfs=[];perfs.forEach(r=>{S.perfs.push({id:r.id,name:r.fields.Name||'',type:r.fields.Type||'Groupe',etage:r.fields.Etage||'Étage 1',todos:tdmap[r.id]||[]});});
+    S.prests=[];prests.forEach(r=>{S.prests.push({id:r.id,name:r.fields.Name||'',cat:r.fields.Categorie||'Autre',desc:r.fields.Notes||'',status:r.fields.Status||'À sourcer',tasks:[]});});
+    S.slots=slots.length?slots.map(r=>({id:r.id,time:r.fields.Time||'',desc:r.fields.Description||'',order:r.fields.Order||0})):SLOT_DEF.map((s,i)=>({...s,id:'def-s'+i}));
+    S.rooms=rooms.length?rooms.map(r=>({id:r.id,name:r.fields.Name||'',floor:r.fields.Floor||'',order:r.fields.Order||0})):ROOM_DEF.map((r,i)=>({...r,id:'def-r'+i}));
+    var roomNameToId={};S.rooms.forEach(r=>roomNameToId[r.name]=r.id);
+    S.blocks=blocks.map(r=>({id:r.id,title:r.fields.Title||'',type:(r.fields.Type||'autre').toLowerCase(),note:r.fields.Note||'',slotId:r.fields.SlotId||'',roomId:roomNameToId[r.fields.RoomName]||''})).filter(b=>b.slotId&&b.roomId);
+    renderNav();
+    S.categories.forEach(c=>renderTaskPanel(c.id));
+    S.categories.forEach(c=>renderTasks(c.id));
+    renderPerfs();renderPrests();renderPlanning();renderFloors();renderRetro();
+    updateStats();updateCounts();toast('Synchronisé ✓');
+  }catch(e){toast('Erreur de connexion');console.error(e);}
+  btn.classList.remove('spin');
+}
+
+// ---- INIT ----
+(function init(){
+  S.categories.forEach(c=>{S.tasks[c.id]=[];});
+  Object.keys(TASK_DEF).forEach(k=>{S.tasks[k]=(TASK_DEF[k]||[]).map((t,i)=>({id:'def-'+k+i,text:t,done:false,timeline:'',subtasks:[],showSubs:false}));});
+  PREST_DEF.forEach(p=>S.prests.push({...p,id:'def-'+Math.random(),status:'À sourcer'}));
+  S.slots=SLOT_DEF.map((s,i)=>({...s,id:'def-s'+i}));
+  S.rooms=ROOM_DEF.map((r,i)=>({...r,id:'def-r'+i}));
+  renderNav();
+  S.categories.forEach(c=>renderTaskPanel(c.id));
+  S.categories.forEach(c=>renderTasks(c.id));
+  renderPrests();renderPlanning();renderFloors();renderRetro();
+  updateStats();updateCounts();
+  syncAll().catch(()=>{});
+})();
+</script>
+</body>
+</html>
